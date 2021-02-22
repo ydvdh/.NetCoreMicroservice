@@ -13,6 +13,10 @@ using Ordering.Infrastructure.Data;
 using Ordering.Infrastructure.Repositories.Base;
 using Ordering.Infrastructure.Repository;
 using System.Reflection;
+using EventBusRabbitMQ;
+using RabbitMQ.Client;
+using Ordering.API.RabbitMQ;
+using Ordering.API.Extentions;
 
 namespace Ordering.API
 {
@@ -41,6 +45,32 @@ namespace Ordering.API
 
             // Add MediatR
             services.AddMediatR(typeof(CheckoutOrderHandler).GetTypeInfo().Assembly);
+
+            #region RabbitMQ Dependencies
+
+            services.AddSingleton<IRabbitMQConnection>(sp =>
+            {
+                var factory = new ConnectionFactory()
+                {
+                    HostName = Configuration["EventBus:HostName"]
+                };
+
+                if (!string.IsNullOrEmpty(Configuration["EventBus:UserName"]))
+                {
+                    factory.UserName = Configuration["EventBus:UserName"];
+                }
+
+                if (!string.IsNullOrEmpty(Configuration["EventBus:Password"]))
+                {
+                    factory.Password = Configuration["EventBus:Password"];
+                }
+
+                return new RabbitMQConnection(factory);
+            });
+
+            services.AddSingleton<EventBusRabbitMQConsumer>();
+
+            #endregion
 
             #region Swagger Dependencies
             services.AddSwaggerGen(c =>
@@ -74,7 +104,7 @@ namespace Ordering.API
                 endpoints.MapControllers();
             });
 
-
+            app.UseRabbitListener();
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
