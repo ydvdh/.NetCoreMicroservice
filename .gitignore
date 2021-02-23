@@ -442,3 +442,6 @@ $RECYCLE.BIN/
 !.vscode/extensions.json
 
 eShopApp/Ordering.Infrastructure/Data/OrderContextSeed.cs
+
+eShopApp/AspnetRunBasics/wwwroot/images
+
